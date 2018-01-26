@@ -134,7 +134,10 @@ class StackOverflow extends Serializable {
       }
     }
 
-    ???
+    (for{
+      (question, score) <- scored
+      if(firstLangInTag(question.tags, langs).isDefined)
+    } yield (langSpread * firstLangInTag(question.tags, langs).get, score))
   }
 
 
