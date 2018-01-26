@@ -288,8 +288,8 @@ class StackOverflow extends Serializable {
     ((comp1 / count).toInt, (comp2 / count).toInt)
   }
 
-  def median(points: Iterable[Int]): Int = {
-    val (left, right) = points.toArray.sortWith(_ < _).splitAt(points.size / 2)
+  def getMedian(points: Iterable[(Int, Int)]): Int = {
+    val (left, right) = points.map(_._2).toArray.sortWith(_ < _).splitAt(points.size / 2)
     if(points.size % 2 != 0) right.head else (left.last + right.head) / 2
   }
 
@@ -311,7 +311,7 @@ class StackOverflow extends Serializable {
       val clusterSize: Int    = vs.size
       // percent of the questions in the most common language
       val langPercent: Double = vs.count(p => p._1 == mostCommonLangIndex)
-      val medianScore: Int    = median(vs)
+      val medianScore: Int    = getMedian(vs)
 
       (langLabel, langPercent, clusterSize, medianScore)
     }

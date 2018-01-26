@@ -22,8 +22,8 @@
       <file leaf-file-name="StackOverflow.scala" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/main/scala/stackoverflow/StackOverflow.scala">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="288">
-              <caret line="205" column="16" lean-forward="true" selection-start-line="205" selection-start-column="16" selection-end-line="205" selection-end-column="16" />
+            <state relative-caret-position="521">
+              <caret line="315" column="56" lean-forward="true" selection-start-line="315" selection-start-column="56" selection-end-line="315" selection-end-column="56" />
               <folding>
                 <element signature="e#23#81#0" expanded="true" />
               </folding>
@@ -369,8 +369,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/scala/stackoverflow/StackOverflow.scala">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="288">
-          <caret line="205" column="16" lean-forward="true" selection-start-line="205" selection-start-column="16" selection-end-line="205" selection-end-column="16" />
+        <state relative-caret-position="521">
+          <caret line="315" column="56" lean-forward="true" selection-start-line="315" selection-start-column="56" selection-end-line="315" selection-end-column="56" />
           <folding>
             <element signature="e#23#81#0" expanded="true" />
           </folding>
