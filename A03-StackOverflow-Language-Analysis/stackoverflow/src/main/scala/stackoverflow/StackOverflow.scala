@@ -190,11 +190,18 @@ class StackOverflow extends Serializable {
 
   /** Main kmeans computation */
   @tailrec final def kmeans(means: Array[(Int, Int)], vectors: RDD[(Int, Int)], iter: Int = 1, debug: Boolean = false): Array[(Int, Int)] = {
-    val newMeans = vectors
+    val newMeans = means.clone()
+
+    val newClusters = vectors
       .map(point => (findClosest(point, means), point))
       .groupByKey()
-      .map{ case(center, points) => averageVectors(points)}
+      .map{case(center, points) => (center, averageVectors(points))}
       .collect()
+
+    // this makes sure that the order of centroids is maintained
+    for(cluster <- newClusters) {
+      newMeans.update(cluster._1, cluster._2)
+    }
 
     // TODO: Fill in the newMeans array
     val distance = euclideanDistance(means, newMeans)
