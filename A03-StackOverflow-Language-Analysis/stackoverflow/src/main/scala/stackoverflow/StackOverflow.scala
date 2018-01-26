@@ -1,13 +1,9 @@
 package stackoverflow
 
-import org.apache.commons.math3.analysis.function.Identity
 import org.apache.spark.SparkConf
 import org.apache.spark.SparkContext
-import org.apache.spark.SparkContext._
 import org.apache.spark.rdd.RDD
-
 import annotation.tailrec
-import scala.reflect.ClassTag
 
 /** A raw stackoverflow posting, either a question or an answer */
 case class Posting(postingType: Int, id: Int, acceptedAnswer: Option[Int], parentId: Option[QID], score: Int, tags: Option[String]) extends Serializable
@@ -23,11 +19,11 @@ object StackOverflow extends StackOverflow {
   def main(args: Array[String]): Unit = {
 
     val lines   = sc.textFile("src/main/resources/stackoverflow/stackoverflow.csv")
-    val raw     = rawPostings(lines).cache()
+    val raw     = rawPostings(lines)
     val grouped = groupedPostings(raw)
     val scored  = scoredPostings(grouped)
-    val vectors = vectorPostings(scored).cache()
-//    assert(vectors.count() == 2121822, "Incorrect number of vectors: " + vectors.count())
+    val vectors = vectorPostings(scored)
+    assert(vectors.count() == 2121822, "Incorrect number of vectors: " + vectors.count())
 
     val means   = kmeans(sampleVectors(vectors), vectors, debug = true)
     val results = clusterResults(means, vectors)
@@ -91,7 +87,7 @@ class StackOverflow extends Serializable {
       .map(posting => (posting.parentId, posting))
 
     // (QID, Answers)
-    val answers_fixed = answers.map{ case(Some(k), v) => (k, v) }
+    val answers_fixed = for((Some(k),v) <- answers) yield (k, v)
 
     // (QID, (Questions, Answers))
     val joined = questions.join(answers_fixed)
@@ -136,10 +132,10 @@ class StackOverflow extends Serializable {
       }
     }
 
-    for{
+    (for{
       (question, score) <- scored
       if firstLangInTag(question.tags, langs).isDefined
-    } yield (langSpread * firstLangInTag(question.tags, langs).get, score)
+    } yield (langSpread * firstLangInTag(question.tags, langs).get, score)).persist()
   }
 
 
@@ -310,7 +306,7 @@ class StackOverflow extends Serializable {
       // size of the cluster
       val clusterSize: Int    = vs.size
       // percent of the questions in the most common language
-      val langPercent: Double = vs.count(p => p._1 == mostCommonLangIndex)
+      val langPercent: Double = vs.count(p => p._1 == mostCommonLangIndex) * 100 / clusterSize
       val medianScore: Int    = getMedian(vs)
 
       (langLabel, langPercent, clusterSize, medianScore)
