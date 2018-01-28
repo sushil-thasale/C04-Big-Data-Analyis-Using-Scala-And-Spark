@@ -62,15 +62,20 @@ object TimeUsage {
     *         have type Double. None of the fields are nullable.
     * @param columnNames Column names of the DataFrame
     */
-  def dfSchema(columnNames: List[String]): StructType =
-    ???
+  def dfSchema(columnNames: List[String]): StructType = {
+    val firstStructField = StructField(columnNames.head, StringType, nullable = false)
+    val restStructFields = columnNames.tail.map(field => StructField(field, DoubleType, nullable = false))
+    StructType(firstStructField :: restStructFields)
+  }
 
 
   /** @return An RDD Row compatible with the schema produced by `dfSchema`
     * @param line Raw fields
     */
-  def row(line: List[String]): Row =
-    ???
+  def row(line: List[String]): Row = {
+    val row = line.head :: line.tail.map(_.toDouble)
+    Row.fromSeq(row)
+  }
 
   /** @return The initial data frame columns partitioned in three groups: primary needs (sleeping, eating, etc.),
     *         work and other (leisure activities)
