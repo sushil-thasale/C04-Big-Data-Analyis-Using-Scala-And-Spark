@@ -83,24 +83,42 @@ object TimeUsage {
     * @see https://www.kaggle.com/bls/american-time-use-survey
     *
     * The dataset contains the daily time (in minutes) people spent in various activities. For instance, the column
-    * “t010101” contains the time spent sleeping, the column “t110101” contains the time spent eating and drinking, etc.
+    * "t010101" contains the time spent sleeping, the column "t110101" contains the time spent eating and drinking, etc.
     *
     * This method groups related columns together:
-    * 1. “primary needs” activities (sleeping, eating, etc.). These are the columns starting with “t01”, “t03”, “t11”,
-    *    “t1801” and “t1803”.
-    * 2. working activities. These are the columns starting with “t05” and “t1805”.
-    * 3. other activities (leisure). These are the columns starting with “t02”, “t04”, “t06”, “t07”, “t08”, “t09”,
-    *    “t10”, “t12”, “t13”, “t14”, “t15”, “t16” and “t18” (those which are not part of the previous groups only).
+    * 1. "primary needs" activities (sleeping, eating, etc.). These are the columns starting with "t01", "t03", "t11",
+    *    "t1801" and "t1803".
+    * 2. working activities. These are the columns starting with "t05" and "t1805".
+    * 3. other activities (leisure). These are the columns starting with "t02", "t04", "t06", "t07", "t08", "t09",
+    *    "t10", "t12", "t13", "t14", "t15", "t16" and "t18" (those which are not part of the previous groups only).
     */
   def classifiedColumns(columnNames: List[String]): (List[Column], List[Column], List[Column]) = {
-    ???
+    val primaryActivities = List("t01", "t03", "t11", "t1801", "t1803")
+    val workActivities = List("t05", "t1805")
+    val otherActivities = List("t02", "t04", "t06", "t07", "t08", "t09", "t10", "t12", "t13", "t14", "t15", "t16", "t18")
+
+    val primary = List[Column]()
+    val working = List[Column]()
+    val leisure = List[Column]()
+
+    for(columnName <- columnNames) {
+      if(primaryActivities.exists(columnName startsWith _)) {
+        columnName :: primary
+      } else if(workActivities.exists(columnName startsWith _)) {
+        columnName :: working
+      } else if(otherActivities.exists(columnName startsWith _)) {
+        columnName :: leisure
+      }
+    }
+
+    (primary, working, leisure)
   }
 
   /** @return a projection of the initial DataFrame such that all columns containing hours spent on primary needs
-    *         are summed together in a single column (and same for work and leisure). The “teage” column is also
+    *         are summed together in a single column (and same for work and leisure). The "teage" column is also
     *         projected to three values: "young", "active", "elder".
     *
-    * @param primaryNeedsColumns List of columns containing time spent on “primary needs”
+    * @param primaryNeedsColumns List of columns containing time spent on "primary needs"
     * @param workColumns List of columns containing time spent working
     * @param otherColumns List of columns containing time spent doing other activities
     * @param df DataFrame whose schema matches the given column lists
@@ -109,12 +127,12 @@ object TimeUsage {
     * a single column.
     *
     * The resulting DataFrame should have the following columns:
-    * - working: value computed from the “telfs” column of the given DataFrame:
+    * - working: value computed from the "telfs" column of the given DataFrame:
     *   - "working" if 1 <= telfs < 3
     *   - "not working" otherwise
-    * - sex: value computed from the “tesex” column of the given DataFrame:
+    * - sex: value computed from the "tesex" column of the given DataFrame:
     *   - "male" if tesex = 1, "female" otherwise
-    * - age: value computed from the “teage” column of the given DataFrame:
+    * - age: value computed from the "teage" column of the given DataFrame:
     *   - "young" if 15 <= teage <= 22,
     *   - "active" if 23 <= teage <= 55,
     *   - "elder" otherwise
@@ -157,14 +175,14 @@ object TimeUsage {
     * @param summed DataFrame returned by `timeUsageSumByClass`
     *
     * The resulting DataFrame should have the following columns:
-    * - working: the “working” column of the `summed` DataFrame,
-    * - sex: the “sex” column of the `summed` DataFrame,
-    * - age: the “age” column of the `summed` DataFrame,
-    * - primaryNeeds: the average value of the “primaryNeeds” columns of all the people that have the same working
+    * - working: the "working" column of the `summed` DataFrame,
+    * - sex: the "sex" column of the `summed` DataFrame,
+    * - age: the "age" column of the `summed` DataFrame,
+    * - primaryNeeds: the average value of the "primaryNeeds" columns of all the people that have the same working
     *   status, sex and age, rounded with a scale of 1 (using the `round` function),
-    * - work: the average value of the “work” columns of all the people that have the same working status, sex
+    * - work: the average value of the "work" columns of all the people that have the same working status, sex
     *   and age, rounded with a scale of 1 (using the `round` function),
-    * - other: the average value of the “other” columns all the people that have the same working status, sex and
+    * - other: the average value of the "other" columns all the people that have the same working status, sex and
     *   age, rounded with a scale of 1 (using the `round` function).
     *
     * Finally, the resulting DataFrame should be sorted by working status, sex and age.
@@ -190,7 +208,7 @@ object TimeUsage {
     ???
 
   /**
-    * @return A `Dataset[TimeUsageRow]` from the “untyped” `DataFrame`
+    * @return A `Dataset[TimeUsageRow]` from the "untyped" `DataFrame`
     * @param timeUsageSummaryDf `DataFrame` returned by the `timeUsageSummary` method
     *
     * Hint: you should use the `getAs` method of `Row` to look up columns and
