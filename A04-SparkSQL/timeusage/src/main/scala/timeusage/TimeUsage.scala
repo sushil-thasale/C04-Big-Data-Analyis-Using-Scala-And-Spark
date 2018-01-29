@@ -193,7 +193,10 @@ object TimeUsage {
     * Finally, the resulting DataFrame should be sorted by working status, sex and age.
     */
   def timeUsageGrouped(summed: DataFrame): DataFrame = {
-    ???
+    summed.select($"working", $"sex", $"age", $"primaryNeeds", $"work", $"other")
+      .groupBy($"working", $"sex", $"age")
+      .agg(round(avg($"primaryNeeds"), 1).as("primaryNeeds"), round(avg($"work"), 1).as("work"), round(avg($"other"), 1).as("other"))
+      .orderBy($"working", $"sex", $"age")
   }
 
   /**
