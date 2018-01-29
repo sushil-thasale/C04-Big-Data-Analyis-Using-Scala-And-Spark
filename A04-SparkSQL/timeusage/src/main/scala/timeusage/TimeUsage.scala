@@ -164,9 +164,11 @@ object TimeUsage {
     // Hint: you want to create a complex column expression that sums other columns
     //       by using the `+` operator between them
     // Hint: don’t forget to convert the value to hours
-    val primaryNeedsProjection: Column = primaryNeedsColumns.foldLeft(lit(0)) ((acc, colName) => acc + df(colName.toString))
-    val workProjection: Column = workColumns.foldLeft(lit(0)) ((acc, colName) => acc + df(colName.toString))
-    val otherProjection: Column = otherColumns.foldLeft(lit(0)) ((acc, colName) => acc + df(colName.toString))
+    def sumColumns(columns: List[Column]): Column = columns.foldLeft(lit(0.0d)) ((acc, colName) => acc + df(colName.toString))
+
+    val primaryNeedsProjection: Column = (sumColumns(primaryNeedsColumns)/60.0d).as("primaryNeeds")
+    val workProjection: Column = (sumColumns(workColumns)/60.0d).as("work")
+    val otherProjection: Column = (sumColumns(otherColumns)/60.0d).as("other")
 
     df
       .select(workingStatusProjection, sexProjection, ageProjection, primaryNeedsProjection, workProjection, otherProjection)
