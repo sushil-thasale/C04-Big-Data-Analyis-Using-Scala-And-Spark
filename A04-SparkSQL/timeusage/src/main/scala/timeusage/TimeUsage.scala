@@ -102,7 +102,7 @@ object TimeUsage {
     val leisure = List[Column]()
 
     for(columnName <- columnNames) {
-      if(primaryActivities.exists(columnName startsWith _)) {
+      if(primaryActivities.exists(columnName.startsWith(_))) {
         columnName :: primary
       } else if(workActivities.exists(columnName startsWith _)) {
         columnName :: working
@@ -213,9 +213,9 @@ object TimeUsage {
     * @param viewName Name of the SQL view to use
     */
   def timeUsageGroupedSqlQuery(viewName: String): String =
-    "select working, sex, age, round(avg(primaryNeeds), 1) as primaryNeeds, round(avg(work), 1) as work, round(avg(other), 1) as other" +
-    "from " + viewName + ""
-    "group by working, sex, age" + ""
+    "select working, sex, age, round(avg(primaryNeeds), 1) as primaryNeeds, round(avg(work), 1) as work, round(avg(other), 1) as other " +
+    "from " + viewName + " "
+    "group by working, sex, age" + " " +
     "order by working, sex, age"
 
   /**
