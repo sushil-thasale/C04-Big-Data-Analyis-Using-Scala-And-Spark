@@ -5,6 +5,8 @@ import java.nio.file.Paths
 import org.apache.spark.sql._
 import org.apache.spark.sql.types._
 
+import scala.collection.mutable.ListBuffer
+
 /** Main class */
 object TimeUsage {
 
@@ -97,21 +99,21 @@ object TimeUsage {
     val workActivities = List("t05", "t1805")
     val otherActivities = List("t02", "t04", "t06", "t07", "t08", "t09", "t10", "t12", "t13", "t14", "t15", "t16", "t18")
 
-    val primary = List[Column]()
-    val working = List[Column]()
-    val leisure = List[Column]()
+    var primary = new ListBuffer[Column]()
+    var working = new ListBuffer[Column]()
+    var other = new ListBuffer[Column]()
 
     for(columnName <- columnNames) {
-      if(primaryActivities.exists(columnName.startsWith(_))) {
-        columnName :: primary
-      } else if(workActivities.exists(columnName startsWith _)) {
-        columnName :: working
-      } else if(otherActivities.exists(columnName startsWith _)) {
-        columnName :: leisure
+      if(primaryActivities.exists(k => columnName.startsWith(k))) {
+        primary  += col(columnName)
+      } else if(workActivities.exists(k => columnName.startsWith(k))) {
+        working  += col(columnName)
+      } else if(otherActivities.exists(k => columnName.startsWith(k))) {
+        other  += col(columnName)
       }
     }
 
-    (primary, working, leisure)
+    (primary.toList, working.toList, other.toList)
   }
 
   /** @return a projection of the initial DataFrame such that all columns containing hours spent on primary needs
@@ -213,10 +215,10 @@ object TimeUsage {
     * @param viewName Name of the SQL view to use
     */
   def timeUsageGroupedSqlQuery(viewName: String): String =
-    "select working, sex, age, round(avg(primaryNeeds), 1) as primaryNeeds, round(avg(work), 1) as work, round(avg(other), 1) as other " +
-    "from " + viewName + " "
-    "group by working, sex, age" + " " +
-    "order by working, sex, age"
+    "SELECT working, sex, age, ROUND(AVG(primaryNeeds), 1) AS primaryNeeds, ROUND(AVG(work), 1) AS work, ROUND(AVG(other), 1) AS other " +
+      "FROM " + viewName + " " +
+      "GROUP BY working, sex, age " +
+      "ORDER BY working, sex, age"
 
   /**
     * @return A `Dataset[TimeUsageRow]` from the "untyped" `DataFrame`
@@ -226,8 +228,8 @@ object TimeUsage {
     * cast them at the same time.
     */
   def timeUsageSummaryTyped(timeUsageSummaryDf: DataFrame): Dataset[TimeUsageRow] =
-    timeUsageSummaryDf.as[TimeUsageRow]
-//    timeUsageSummaryDf.map(row => TimeUsageRow(row.getAs("working"), row.getAs("sex"), row.getAs("age"), row.getAs("primaryNeeds"), row.getAs("work"), row.getAs("other")))
+//    timeUsageSummaryDf.as[TimeUsageRow]
+    timeUsageSummaryDf.map(row => TimeUsageRow(row.getAs("working"), row.getAs("sex"), row.getAs("age"), row.getAs("primaryNeeds"), row.getAs("work"), row.getAs("other")))
 
   /**
     * @return Same as `timeUsageGrouped`, but using the typed API when possible
@@ -243,11 +245,11 @@ object TimeUsage {
   def timeUsageGroupedTyped(summed: Dataset[TimeUsageRow]): Dataset[TimeUsageRow] = {
     import org.apache.spark.sql.expressions.scalalang.typed
 
-    summed.groupByKey(tur => (tur.working, tur.sex, tur.age))
+    summed.groupByKey(r => (r.working, r.sex, r.age))
       .agg(round(typed.avg[TimeUsageRow](_.primaryNeeds), 1).as(Encoders.DOUBLE),
         round(typed.avg[TimeUsageRow](_.work), 1).as(Encoders.DOUBLE),
         round(typed.avg[TimeUsageRow](_.other), 1).as(Encoders.DOUBLE))
-      .map(r => TimeUsageRow(r._1._1, r._1._2, r._1._3, r._2, r._3, r._4))
+      .map(k => TimeUsageRow(k._1._1, k._1._2, k._1._3, k._2, k._3, k._4))
       .sort($"working", $"sex", $"age")
   }
 }
